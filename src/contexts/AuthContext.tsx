@@ -18,6 +18,8 @@ interface AuthState {
   signOut: () => Promise<void>;
   updateAccount: (updates: Partial<Account>) => void;
   forceSetPassword: (currentPass: string, newPass: string) => Promise<{ error: string | null }>;
+  hasMobileEnrollment: boolean;
+  setHasMobileEnrollment: (val: boolean) => void;
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -25,6 +27,7 @@ const AuthContext = createContext<AuthState | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasMobileEnrollment, setHasMobileEnrollment] = useState(false);
 
   useEffect(() => {
     async function loadAccount() {
@@ -45,6 +48,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setAccount(null);
           } else {
             setAccount(storedAccount);
+            // Check for mobile enrollment
+            const { data: enrData, error: enrError } = await supabase.rpc("platform_has_active_enrollment", {
+              p_token: storedAccount.token,
+              p_model_version: 'mobilefacenet-mobile-v1'
+            });
+            if (!enrError && (enrData as any)?.has_active) {
+              setHasMobileEnrollment(true);
+            }
           }
         } else {
           setAccount(null);
@@ -93,6 +104,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setAccount(acct);
     await saveAccount(acct);
+    
+    // Check for mobile enrollment on login
+    const { data: enrData, error: enrError } = await supabase.rpc("platform_has_active_enrollment", {
+      p_token: acct.token,
+      p_model_version: 'mobilefacenet-mobile-v1'
+    });
+    setHasMobileEnrollment(!enrError && (enrData as any)?.has_active === true);
+    
     return { error: null };
   }, []);
 
@@ -140,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [account, updateAccount]);
 
   return (
-    <AuthContext.Provider value={{ account, loading, signIn, signOut, updateAccount, forceSetPassword }}>
+    <AuthContext.Provider value={{ account, loading, signIn, signOut, updateAccount, forceSetPassword, hasMobileEnrollment, setHasMobileEnrollment }}>
       {children}
     </AuthContext.Provider>
   );

@@ -7,10 +7,12 @@ import LoginScreen from '../screens/LoginScreen';
 import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
 
+import EnrollFaceScreen from '../screens/EnrollFaceScreen';
+
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
-  const { account, loading } = useAuth();
+  const { account, loading, hasMobileEnrollment } = useAuth();
 
   if (loading) {
     return (
@@ -26,6 +28,8 @@ export default function AppNavigator() {
         <Stack.Screen name="Login" component={LoginScreen} />
       ) : account.must_change_password ? (
         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+      ) : !hasMobileEnrollment ? (
+        <Stack.Screen name="EnrollFace" component={EnrollFaceScreen} />
       ) : (
         <Stack.Screen name="Home" component={HomeScreen} />
       )}
