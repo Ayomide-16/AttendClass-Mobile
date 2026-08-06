@@ -5,9 +5,11 @@ import { useAuth } from '../contexts/AuthContext';
 
 import LoginScreen from '../screens/LoginScreen';
 import ResetPasswordScreen from '../screens/ResetPasswordScreen';
-import HomeScreen from '../screens/HomeScreen';
+import DashboardScreen from '../screens/DashboardScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 import EnrollFaceScreen from '../screens/EnrollFaceScreen';
+import CheckInScreen from '../screens/CheckInScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -31,7 +33,11 @@ export default function AppNavigator() {
       ) : !hasMobileEnrollment ? (
         <Stack.Screen name="EnrollFace" component={EnrollFaceScreen} />
       ) : (
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Group>
+          <Stack.Screen name="Dashboard" component={DashboardScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="CheckIn" component={CheckInScreen} />
+        </Stack.Group>
       )}
     </Stack.Navigator>
   );
